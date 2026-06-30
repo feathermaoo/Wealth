@@ -18,8 +18,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
- <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/55365913230_0d9a831597_m.jpg">
-    <link rel="icon" type="image/png" href="https://live.staticflickr.com/65535/55365913230_0d9a831597_m.jpg">
+ <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/55365787743_9386aa9e75_m.jpg">
+    <link rel="icon" type="image/png" href="https://live.staticflickr.com/65535/55365787743_9386aa9e75_m.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&display=swap" rel="stylesheet">
 
  
@@ -41,6 +41,12 @@
     .app-screen { display: none !important; }
 
     .print-only { display: block !important; }
+
+    table { page-break-inside: auto; }
+
+    tr { page-break-inside: avoid; page-break-after: auto; }
+
+    h2 { page-break-after: avoid; }
 
   }
 
@@ -219,6 +225,34 @@ const INCOME_GROUPS = [{
 const EXPENSE_PRESETS = ["孝親費", "伙食費", "日用品", "治裝費", "個人保養", "房貸", "汽機車貸款", "房租", "水電瓦斯管理費", "房屋稅金", "所得稅", "油錢", "汽機車保養", "車險", "子女教育金", "成長進修費", "娛樂費", "訂閱費", "信貸", "網路電話費", "婚喪喜慶", "寵物開支", "醫療費用", "旅遊費"];
 const SAVING_PRESETS = ["股票", "定存", "基金", "壽險", "投資型保單", "外幣"];
 const RISK_PRESETS = ["社會保險", "保障型保險", "產險"];
+const CURRENCIES = [{
+  code: "TWD",
+  label: "TWD 台幣"
+}, {
+  code: "USD",
+  label: "USD 美元"
+}, {
+  code: "JPY",
+  label: "JPY 日圓"
+}, {
+  code: "EUR",
+  label: "EUR 歐元"
+}, {
+  code: "CNY",
+  label: "CNY 人民幣"
+}, {
+  code: "HKD",
+  label: "HKD 港幣"
+}, {
+  code: "AUD",
+  label: "AUD 澳幣"
+}, {
+  code: "GBP",
+  label: "GBP 英鎊"
+}];
+const INITIAL_RATES = {
+  TWD: 1
+};
 const INK = "#22271F";
 const PAPER = "#F6F3EC";
 const LINE = "#DAD4C4";
@@ -227,6 +261,22 @@ const nid = () => `i${Date.now()}_${_id++}`;
 function monthly(item) {
   const a = parseFloat(item.amount) || 0;
   return item.freq === "year" ? a / 12 : a;
+}
+function amountTwd(item, rates = INITIAL_RATES) {
+  const amount = parseFloat(item.amount) || 0;
+  const currency = item.currency || "TWD";
+  if (currency === "TWD") return amount;
+  const rate = parseFloat(item.rate || rates[currency]);
+  return Number.isFinite(rate) && rate > 0 ? amount * rate : 0;
+}
+function itemRate(item, rates = INITIAL_RATES) {
+  const currency = item.currency || "TWD";
+  if (currency === "TWD") return 1;
+  const rate = parseFloat(item.rate || rates[currency]);
+  return Number.isFinite(rate) && rate > 0 ? rate : "";
+}
+function freqLabel(freq) {
+  return freq === "year" ? "年" : "月";
 }
 function fmt(n) {
   const v = Math.round(n || 0);
@@ -240,46 +290,51 @@ function Light({
 }) {
   const map = {
     green: {
-      c: "#1F7A3D",
-      bg: "#E3F3E6",
+      c: "#10843F",
+      bg: "#DDF7E7",
+      glow: "#24C86B",
       label: "綠燈"
     },
     yellow: {
-      c: "#A6760A",
-      bg: "#FBEFD6",
+      c: "#B76A00",
+      bg: "#FFF0C2",
+      glow: "#FFB000",
       label: "黃燈"
     },
     red: {
-      c: "#C53A2E",
-      bg: "#FBE2DE",
+      c: "#D91F11",
+      bg: "#FFE0DC",
+      glow: "#FF3828",
       label: "紅燈"
     }
   };
   const {
     c,
     bg,
+    glow,
     label
   } = map[level] || map.yellow;
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("span", {
     style: {
       display: "inline-flex",
       alignItems: "center",
-      gap: 7,
+      gap: 8,
       color: c,
       background: bg,
-      fontWeight: 800,
-      fontSize: 13,
-      padding: "5px 12px",
+      fontWeight: 900,
+      fontSize: 16,
+      padding: "7px 16px",
       borderRadius: 999,
-      border: `1.5px solid ${c}`
+      border: `2px solid ${c}`,
+      boxShadow: `0 0 0 3px ${c}22, 0 0 16px ${glow}55`
     },
     children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
       style: {
-        width: 10,
-        height: 10,
+        width: 12,
+        height: 12,
         borderRadius: "50%",
         background: c,
-        boxShadow: `0 0 0 3px ${c}33`
+        boxShadow: `0 0 0 4px ${c}33, 0 0 12px ${glow}`
       }
     }), label]
   });
@@ -289,9 +344,14 @@ function ItemRow({
   onChange,
   onRemove,
   showFreq,
+  showCurrency,
+  rates,
   locked,
   labelWidth
 }) {
+  const currency = item.currency || "TWD";
+  const showRateInput = showCurrency && currency !== "TWD";
+  const resolvedRate = itemRate(item, rates);
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
     style: {
       display: "flex",
@@ -346,6 +406,55 @@ function ItemRow({
         color: INK,
         background: "#fff"
       }
+    }), showCurrency && /*#__PURE__*/(0, _jsxRuntime.jsx)("select", {
+      value: item.currency || "TWD",
+      onChange: e => onChange({
+        ...item,
+        currency: e.target.value
+      }),
+      style: {
+        border: `1px solid ${LINE}`,
+        borderRadius: 6,
+        padding: "6px 6px",
+        fontSize: 12,
+        fontFamily: "'Noto Sans TC', sans-serif",
+        color: INK,
+        background: "#fff",
+        width: 92
+      },
+      children: CURRENCIES.map(c => /*#__PURE__*/(0, _jsxRuntime.jsx)("option", {
+        value: c.code,
+        children: c.code
+      }, c.code))
+    }), showRateInput && /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+      type: "number",
+      value: item.rate ?? rates[currency] ?? "",
+      onChange: e => onChange({
+        ...item,
+        rate: e.target.value
+      }),
+      placeholder: "\u532F\u7387",
+      style: {
+        flex: "0 0 78px",
+        minWidth: 0,
+        border: `1px solid ${LINE}`,
+        borderRadius: 6,
+        padding: "6px 8px",
+        fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: 12,
+        textAlign: "right",
+        color: INK,
+        background: "#fff"
+      }
+    }), showRateInput && /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+      style: {
+        flex: "0 0 112px",
+        textAlign: "right",
+        fontFamily: "'IBM Plex Mono', monospace",
+        fontSize: 12,
+        color: "#5A5443"
+      },
+      children: resolvedRate ? `NT$ ${fmt(amountTwd(item, rates))}` : "輸入匯率"
     }), showFreq && /*#__PURE__*/(0, _jsxRuntime.jsxs)("select", {
       value: item.freq,
       onChange: e => onChange({
@@ -363,10 +472,10 @@ function ItemRow({
       },
       children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("option", {
         value: "month",
-        children: "\u6708\u7E73"
+        children: "\u6708"
       }), /*#__PURE__*/(0, _jsxRuntime.jsx)("option", {
         value: "year",
-        children: "\u5E74\u7E73"
+        children: "\u5E74"
       })]
     }), !locked && /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
       onClick: onRemove,
@@ -391,6 +500,8 @@ function CategoryBlock({
   setItems,
   presets,
   showFreq,
+  showCurrency,
+  rates,
   subtotalLabel,
   icon
 }) {
@@ -400,7 +511,8 @@ function CategoryBlock({
       id: null,
       name,
       amount: "",
-      freq: "month"
+      freq: "month",
+      currency: "TWD"
     };
   });
   const customRows = items.filter(it => !presets.includes(it.name));
@@ -422,9 +534,10 @@ function CategoryBlock({
     id: nid(),
     name: "",
     amount: "",
-    freq: "month"
+    freq: "month",
+    currency: "TWD"
   }]);
-  const subtotal = items.reduce((s, it) => s + (showFreq ? monthly(it) : parseFloat(it.amount) || 0), 0);
+  const subtotal = items.reduce((s, it) => s + (showCurrency ? amountTwd(it, rates) : showFreq ? monthly(it) : parseFloat(it.amount) || 0), 0);
   const labelWidth = 96;
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
     style: {
@@ -462,11 +575,15 @@ function CategoryBlock({
       locked: true,
       labelWidth: labelWidth,
       showFreq: showFreq,
+      showCurrency: showCurrency,
+      rates: rates,
       onChange: n => updatePreset(row.name, n)
     }, row.name)), customRows.map(it => /*#__PURE__*/(0, _jsxRuntime.jsx)(ItemRow, {
       item: it,
       labelWidth: labelWidth,
       showFreq: showFreq,
+      showCurrency: showCurrency,
+      rates: rates,
       onChange: n => updateCustom(it.id, n),
       onRemove: () => removeCustom(it.id)
     }, it.id)), /*#__PURE__*/(0, _jsxRuntime.jsxs)("button", {
@@ -499,19 +616,36 @@ function IndicatorCard({
   level,
   advice
 }) {
-  const borderColor = {
-    green: "#1F7A3D",
-    yellow: "#A6760A",
-    red: "#C53A2E"
-  }[level] || LINE;
+  const tone = {
+    green: {
+      c: "#10843F",
+      bg: "#FFFFFF",
+      shadow: "0 8px 20px rgba(16,132,63,.08)"
+    },
+    yellow: {
+      c: "#B76A00",
+      bg: "#FFF9E8",
+      shadow: "0 10px 24px rgba(183,106,0,.13)"
+    },
+    red: {
+      c: "#D91F11",
+      bg: "#FFF0EE",
+      shadow: "0 12px 28px rgba(217,31,17,.22)"
+    }
+  }[level] || {
+    c: LINE,
+    bg: "#fff",
+    shadow: "none"
+  };
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
     style: {
-      background: "#fff",
-      border: `1px solid ${LINE}`,
-      borderLeft: `5px solid ${borderColor}`,
+      background: tone.bg,
+      border: `1px solid ${level === "red" ? tone.c : LINE}`,
+      borderLeft: `14px solid ${tone.c}`,
       borderRadius: 14,
       padding: 18,
-      flex: "1 1 220px"
+      flex: "1 1 220px",
+      boxShadow: tone.shadow
     },
     children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
       style: {
@@ -555,12 +689,64 @@ function IndicatorCard({
       children: ["\u5EFA\u8B70\u5340\u9593\uFF1A", target]
     }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
       style: {
-        fontSize: 13,
-        color: "#5A5443",
-        marginTop: 10,
-        lineHeight: 1.5
+        fontSize: 14,
+        color: "#4F4738",
+        marginTop: 12,
+        lineHeight: 1.7
       },
       children: advice
+    })]
+  });
+}
+function ReportTable({
+  columns,
+  rows,
+  emptyText = "目前沒有明細"
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("table", {
+    style: {
+      width: "100%",
+      borderCollapse: "collapse",
+      fontSize: 11.5,
+      marginBottom: 18
+    },
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("thead", {
+      children: /*#__PURE__*/(0, _jsxRuntime.jsx)("tr", {
+        style: {
+          borderBottom: `1.5px solid ${INK}`,
+          textAlign: "left"
+        },
+        children: columns.map(col => /*#__PURE__*/(0, _jsxRuntime.jsx)("th", {
+          style: {
+            padding: "5px 6px",
+            color: INK
+          },
+          children: col.label
+        }, col.key))
+      })
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("tbody", {
+      children: rows.length === 0 ? /*#__PURE__*/(0, _jsxRuntime.jsx)("tr", {
+        children: /*#__PURE__*/(0, _jsxRuntime.jsx)("td", {
+          colSpan: columns.length,
+          style: {
+            padding: "8px 6px",
+            color: "#8E8574"
+          },
+          children: emptyText
+        })
+      }) : rows.map((row, idx) => /*#__PURE__*/(0, _jsxRuntime.jsx)("tr", {
+        style: {
+          borderBottom: `1px solid ${LINE}`
+        },
+        children: columns.map(col => /*#__PURE__*/(0, _jsxRuntime.jsx)("td", {
+          style: {
+            padding: "6px",
+            fontFamily: col.mono ? "'IBM Plex Mono', monospace" : "'Noto Sans TC', sans-serif",
+            textAlign: col.align || "left"
+          },
+          children: col.render ? col.render(row) : row[col.key]
+        }, col.key))
+      }, idx))
     })]
   });
 }
@@ -580,6 +766,7 @@ function FinancialHealthApp() {
   const [expense, setExpense] = useState([]);
   const [saving, setSaving] = useState([]);
   const [risk, setRisk] = useState([]);
+  const [rates, setRates] = useState(INITIAL_RATES);
   const saveTimer = useRef(null);
   useEffect(() => {
     (async () => {
@@ -588,11 +775,31 @@ function FinancialHealthApp() {
         if (res && res.value) {
           const d = JSON.parse(res.value);
           setName(d.name || "");
-          setAssets(d.assets || {
-            low: [],
-            mid: [],
-            high: []
-          });
+          const normalizeAssets = grouped => {
+            const base = grouped || {
+              low: [],
+              mid: [],
+              high: []
+            };
+            return {
+              low: (base.low || []).map(it => ({
+                currency: "TWD",
+                rate: "",
+                ...it
+              })),
+              mid: (base.mid || []).map(it => ({
+                currency: it.name === "外幣" ? "USD" : "TWD",
+                rate: "",
+                ...it
+              })),
+              high: (base.high || []).map(it => ({
+                currency: "TWD",
+                rate: "",
+                ...it
+              }))
+            };
+          };
+          setAssets(normalizeAssets(d.assets));
           setIncome(d.income || {
             active: [],
             passive: []
@@ -608,6 +815,37 @@ function FinancialHealthApp() {
         setLoaded(true);
       }
     })();
+  }, []);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("https://rate.bot.com.tw/xrt/flcsv/0/day");
+        if (!res.ok) throw new Error("rate api failed");
+        const text = await res.text();
+        const next = {
+          TWD: 1
+        };
+        text.split(/\r?\n/).forEach(line => {
+          const cols = line.split(",");
+          const code = (cols[0] || "").trim();
+          const cashSell = parseFloat(cols[12]);
+          const spotSell = parseFloat(cols[4]);
+          const rate = Number.isFinite(cashSell) && cashSell > 0 ? cashSell : spotSell;
+          if (code && Number.isFinite(rate) && rate > 0) next[code] = rate;
+        });
+        if (!cancelled) {
+          setRates(next);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setRates(INITIAL_RATES);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
   useEffect(() => {
     if (!loaded) return;
@@ -629,7 +867,7 @@ function FinancialHealthApp() {
     return () => clearTimeout(saveTimer.current);
   }, [name, assets, income, expense, saving, risk, loaded]);
   const calc = useMemo(() => {
-    const sumStatic = arr => arr.reduce((s, it) => s + (parseFloat(it.amount) || 0), 0);
+    const sumStatic = arr => arr.reduce((s, it) => s + amountTwd(it, rates), 0);
     const sumMonthly = arr => arr.reduce((s, it) => s + monthly(it), 0);
     const totalLow = sumStatic(assets.low);
     const totalMid = sumStatic(assets.mid);
@@ -653,13 +891,13 @@ function FinancialHealthApp() {
     const highPct = totalHigh / totalAssets;
     const lowPct = totalLow / totalAssets;
     let assetLevel = "green";
-    let assetNote = "資產配置分布尚屬均衡。";
+    let assetNote = "資產配置分布尚屬均衡，可維持目前節奏，並定期檢查現金、穩健型工具與成長型資產是否仍符合你的年齡、收入穩定度與可承受波動。";
     if (highPct > 0.5) {
       assetLevel = "red";
-      assetNote = "高波動資產佔比過高，市場波動時資產價值可能大幅震盪，建議檢視配置。";
+      assetNote = "高波動資產佔比過高，市場修正時整體資產可能快速縮水。建議先確認 6 個月預備金，再逐步把部分資金移回現金、定存或較穩健工具，避免短期需要用錢時被迫賣出。";
     } else if (lowPct > 0.8 && totalSaving === 0) {
       assetLevel = "yellow";
-      assetNote = "資產多集中於低波動工具且目前無投資支出，長期成長性可能不足。";
+      assetNote = "資產多集中於低波動工具且目前沒有固定投資，短期安全感足夠，但長期可能被通膨吃掉購買力。建議從小額定期定額開始，建立可持續的成長型配置。";
     }
     const levels = [lifeLevel, savingLevel, riskLevel, emergencyLevel, assetLevel];
     const score = levels.reduce((s, l) => s + (l === "green" ? 2 : l === "yellow" ? 1 : 0), 0);
@@ -691,7 +929,7 @@ function FinancialHealthApp() {
       grade,
       redCount
     };
-  }, [assets, income, expense, saving, risk]);
+  }, [assets, income, expense, saving, risk, rates]);
   const gradeColor = {
     A: "#3E7A4F",
     B: "#6E8B3A",
@@ -709,25 +947,25 @@ function FinancialHealthApp() {
     value: pct(calc.lifeRatio),
     target: "≤ 60%",
     level: calc.lifeLevel,
-    advice: calc.lifeLevel === "green" ? "支出控制得當，財務空間健康。" : calc.lifeLevel === "yellow" ? "生活支出開始擠壓財務空間，建議檢視非必要開銷。" : "入不敷出風險高，建議優先削減固定與變動支出。"
+    advice: calc.lifeLevel === "green" ? "生活支出控制在健康範圍內，代表收入仍有餘裕分配到儲蓄、投資與保障。建議維持固定記帳，避免新訂閱、分期與衝動消費慢慢墊高基本開銷。" : calc.lifeLevel === "yellow" ? "生活支出已開始壓縮財務彈性，若收入短期波動，現金流會比較緊。建議先檢查房租房貸、交通、訂閱、娛樂與外食，挑 2 到 3 個項目設定月上限。" : "生活支出佔比過高，代表收入大多被日常開銷吃掉，遇到突發狀況容易靠信用或動用投資。建議立刻列出固定支出與可變支出，先砍非必要項目，再重新設定每月可花費上限。"
   }, {
     title: "儲蓄投資佔比",
     value: pct(calc.savingRatio),
     target: "≥ 30%",
     level: calc.savingLevel,
-    advice: calc.savingLevel === "green" ? "儲蓄動能充足，資產可持續累積。" : calc.savingLevel === "yellow" ? "累積速度偏慢，可評估提高定期定額金額。" : "財富成長嚴重不足，建議重新檢視收支結構，提高儲蓄比例。"
+    advice: calc.savingLevel === "green" ? "儲蓄與投資動能充足，資產有機會穩定累積。建議把投資分成短中長期目標，並確認風險配置不是只追求報酬，而是能長期持有。" : calc.savingLevel === "yellow" ? "目前有在累積資產，但速度偏慢，長期目標可能需要更久才達成。建議先把加薪、獎金或額外收入的一部分自動轉入投資或儲蓄帳戶，降低被花掉的機率。" : "儲蓄投資比例明顯不足，財富成長會被生活支出與通膨拖住。建議先設定一個最低自動儲蓄金額，從收入入帳當天先轉出，而不是月底剩多少才存多少。"
   }, {
     title: "保險佔比",
     value: pct(calc.riskRatio),
     target: "5% ~ 15%",
     level: calc.riskLevel,
-    advice: calc.riskLevel === "green" ? "保障與保費負擔相對平衡。" : calc.riskRatio < 0.05 ? "保障可能不足，建議檢視風險缺口。" : "保費佔比偏高，建議檢視險種結構是否重複或過量。"
+    advice: calc.riskLevel === "green" ? "保費負擔與保障配置大致平衡。建議定期檢查醫療、重大疾病、失能、壽險與責任風險是否符合目前家庭責任，不只看保費比例。" : calc.riskRatio < 0.05 ? "保費佔比偏低，可能代表保障不足或風險缺口尚未盤點。建議先確認高衝擊風險，例如醫療、失能、家庭主要收入中斷，再補足必要保障。" : "保費佔比偏高，容易排擠生活、儲蓄與投資預算。建議檢查是否有重複保障、投資型保單費用過高，或已不符合現況的舊保單，優先調整效率差的項目。"
   }, {
     title: "緊急預備金",
     value: `${calc.emergencyMonths.toFixed(1)} 個月`,
     target: "≥ 6 個月",
     level: calc.emergencyLevel,
-    advice: calc.emergencyLevel === "green" ? "現金水位安全，足以應對突發狀況。" : calc.emergencyLevel === "yellow" ? "可接受，但建議持續補足現金水位。" : "高風險，建議優先暫緩投資，把現金拉高到 3 個月以上。"
+    advice: calc.emergencyLevel === "green" ? "預備金水位充足，遇到失業、醫療或家庭急用時比較不需要賣投資或借貸。建議把這筆錢放在高流動、低風險的位置，避免拿去追求高報酬。" : calc.emergencyLevel === "yellow" ? "預備金尚可但不算寬裕，短期突發事件可能讓現金流緊繃。建議每月固定補水位，先把目標拉到 6 個月，再考慮提高投資比例。" : "預備金不足是高優先級警訊，任何突發支出都可能打亂整體財務。建議暫緩增加高風險投資，先把現金補到至少 3 個月，再逐步拉到 6 個月。"
   }, {
     title: "資產配置風險",
     value: pct(calc.highPct),
@@ -740,26 +978,53 @@ function FinancialHealthApp() {
     yellow: "黃燈",
     red: "紅燈"
   };
+  const assetDetailRows = ASSET_GROUPS.flatMap(g => assets[g.key].map(it => ({
+    type: g.label,
+    name: it.name || "未命名",
+    amount: parseFloat(it.amount) || 0,
+    currency: it.currency || "TWD",
+    rate: itemRate(it, rates),
+    twd: amountTwd(it, rates)
+  })));
+  const incomeDetailRows = [...income.active.map(it => ({
+    type: "主動收入",
+    ...it
+  })), ...income.passive.map(it => ({
+    type: "被動收入",
+    ...it
+  }))];
+  const expenseDetailRows = [...expense.map(it => ({
+    type: "消費支出",
+    ...it
+  })), ...saving.map(it => ({
+    type: "投資儲蓄",
+    ...it
+  })), ...risk.map(it => ({
+    type: "風險支出",
+    ...it
+  }))];
   const exportExcel = () => {
     const wb = XLSX.utils.book_new();
     const today = new Date().toLocaleDateString("zh-Hant-TW");
-    const assetRows = [["分類", "項目", "金額"]];
-    ASSET_GROUPS.forEach(g => assets[g.key].forEach(it => assetRows.push([g.label, it.name, parseFloat(it.amount) || 0])));
+    const assetRows = [["分類", "項目", "原幣金額", "幣別", "匯率", "台幣換算"]];
+    assetDetailRows.forEach(it => assetRows.push([it.type, it.name, it.amount, it.currency, it.rate, it.twd]));
     assetRows.push(["", "低波動資產小計", calc.totalLow]);
     assetRows.push(["", "中波動資產小計", calc.totalMid]);
     assetRows.push(["", "高波動資產小計", calc.totalHigh]);
     assetRows.push(["", "總資產", calc.totalAssets === 1 ? 0 : calc.totalAssets]);
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(assetRows), "資產盤點");
-    const cfRows = [["類型", "項目", "金額", "週期", "月均額"]];
-    income.active.forEach(it => cfRows.push(["主動收入", it.name, parseFloat(it.amount) || 0, it.freq, monthly(it)]));
-    income.passive.forEach(it => cfRows.push(["被動收入", it.name, parseFloat(it.amount) || 0, it.freq, monthly(it)]));
-    expense.forEach(it => cfRows.push(["消費支出", it.name, parseFloat(it.amount) || 0, it.freq, monthly(it)]));
-    saving.forEach(it => cfRows.push(["投資儲蓄", it.name, parseFloat(it.amount) || 0, it.freq, monthly(it)]));
-    risk.forEach(it => cfRows.push(["風險支出", it.name, parseFloat(it.amount) || 0, it.freq, monthly(it)]));
-    cfRows.push(["", "月總收入", "", "", calc.totalIncome]);
-    cfRows.push(["", "月總支出", "", "", calc.totalExpense + calc.totalSaving + calc.totalRisk]);
-    cfRows.push(["", "淨現金流", "", "", calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk]);
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cfRows), "收支記帳");
+    const incomeRows = [["類型", "項目", "金額", "週期", "月均額"]];
+    income.active.forEach(it => incomeRows.push(["主動收入", it.name, parseFloat(it.amount) || 0, freqLabel(it.freq), monthly(it)]));
+    income.passive.forEach(it => incomeRows.push(["被動收入", it.name, parseFloat(it.amount) || 0, freqLabel(it.freq), monthly(it)]));
+    incomeRows.push(["", "月總收入", "", "", calc.totalIncome]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(incomeRows), "收入記帳");
+    const expenseRows = [["類型", "項目", "金額", "週期", "月均額"]];
+    expense.forEach(it => expenseRows.push(["消費支出", it.name, parseFloat(it.amount) || 0, freqLabel(it.freq), monthly(it)]));
+    saving.forEach(it => expenseRows.push(["投資儲蓄", it.name, parseFloat(it.amount) || 0, freqLabel(it.freq), monthly(it)]));
+    risk.forEach(it => expenseRows.push(["風險支出", it.name, parseFloat(it.amount) || 0, freqLabel(it.freq), monthly(it)]));
+    expenseRows.push(["", "月總支出", "", "", calc.totalExpense + calc.totalSaving + calc.totalRisk]);
+    expenseRows.push(["", "淨現金流", "", "", calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expenseRows), "支出紀錄");
     const sumRows = [["姓名", name || "未填寫"], ["匯出日期", today], ["整體健康度", calc.grade], []];
     sumRows.push(["指標", "數值", "建議區間", "燈號", "健檢建議"]);
     indicators.forEach(i => sumRows.push([i.title, i.value, i.target, levelLabel[i.level], i.advice]));
@@ -774,9 +1039,13 @@ function FinancialHealthApp() {
     label: "資產盤點",
     Icon: Landmark
   }, {
-    key: "cashflow",
-    label: "收支記帳",
-    Icon: Wallet
+    key: "income",
+    label: "收入記帳",
+    Icon: Banknote
+  }, {
+    key: "expense",
+    label: "支出紀錄",
+    Icon: ArrowDownCircle
   }, {
     key: "dashboard",
     label: "健檢結果",
@@ -884,7 +1153,7 @@ function FinancialHealthApp() {
             marginTop: -8,
             marginBottom: 18
           },
-          children: "\u586B\u5165\u76EE\u524D\u6301\u6709\u7684\u8CC7\u7522\u8207\u91D1\u984D\uFF0C\u7CFB\u7D71\u6703\u81EA\u52D5\u4F9D\u98A8\u96AA\u6CE2\u52D5\u5EA6\u5206\u985E\u52A0\u7E3D\u3002"
+          children: "\u586B\u5165\u76EE\u524D\u6301\u6709\u7684\u8CC7\u7522\u8207\u91D1\u984D\uFF0C\u53EF\u9078\u64C7\u5916\u5E63\u5225\uFF0C\u7CFB\u7D71\u6703\u81EA\u52D5\u63DB\u7B97\u6210\u53F0\u5E63\u518D\u52A0\u7E3D\u3002"
         }), ASSET_GROUPS.map(g => /*#__PURE__*/(0, _jsxRuntime.jsx)(CategoryBlock, {
           title: g.label,
           accent: g.color,
@@ -897,7 +1166,9 @@ function FinancialHealthApp() {
             [g.key]: items
           })),
           presets: g.presets,
-          showFreq: false
+          showFreq: false,
+          showCurrency: true,
+          rates: rates
         }, g.key)), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           style: {
             marginTop: 8,
@@ -924,7 +1195,7 @@ function FinancialHealthApp() {
             children: ["\u9AD8 ", pct(calc.totalHigh / (calc.totalAssets || 1))]
           })]
         })]
-      }), tab === "cashflow" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+      }), tab === "income" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("p", {
           style: {
             fontSize: 13,
@@ -932,7 +1203,7 @@ function FinancialHealthApp() {
             marginTop: -8,
             marginBottom: 18
           },
-          children: "\u6BCF\u7B46\u6536\u652F\u90FD\u53EF\u4EE5\u9078\u64C7\u300C\u6708\u7E73\u300D\u6216\u300C\u5E74\u7E73\u300D\uFF0C\u7CFB\u7D71\u6703\u81EA\u52D5\u63DB\u7B97\u6210\u6708\u5747\u984D\u518D\u9032\u884C\u5065\u6AA2\u8A08\u7B97\u3002"
+          children: "\u7D00\u9304\u4E3B\u52D5\u6536\u5165\u8207\u88AB\u52D5\u6536\u5165\uFF0C\u53EF\u9078\u64C7\u300C\u6708\u300D\u6216\u300C\u5E74\u300D\uFF0C\u7CFB\u7D71\u6703\u63DB\u7B97\u6210\u6708\u5747\u6536\u5165\u4E26\u7D0D\u5165\u5065\u6AA2\u3002"
         }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
           style: {
             display: "flex",
@@ -942,9 +1213,9 @@ function FinancialHealthApp() {
             fontSize: 18,
             margin: "0 0 12px"
           },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Banknote, {
             size: 19
-          }), "\u73FE\u91D1\u6536\u5165"]
+          }), "\u6536\u5165\u8A18\u5E33"]
         }), INCOME_GROUPS.map(g => /*#__PURE__*/(0, _jsxRuntime.jsx)(CategoryBlock, {
           title: g.label,
           accent: "#4F7A6B",
@@ -959,18 +1230,41 @@ function FinancialHealthApp() {
           presets: g.presets,
           showFreq: true,
           subtotalLabel: "\u6708\u5747"
-        }, g.key)), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        }, g.key)), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            marginTop: 8,
+            padding: 16,
+            background: "#EEF7F0",
+            borderRadius: 12,
+            border: "1px solid #BFD8C6",
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 14
+          },
+          children: ["\u6708\u6536\u5165\u5408\u8A08 ", /*#__PURE__*/(0, _jsxRuntime.jsx)("strong", {
+            children: fmt(calc.totalIncome)
+          })]
+        })]
+      }), tab === "expense" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("p", {
+          style: {
+            fontSize: 13,
+            color: "#5A5443",
+            marginTop: -8,
+            marginBottom: 18
+          },
+          children: "\u7D00\u9304\u751F\u6D3B\u652F\u51FA\u3001\u6295\u8CC7\u5132\u84C4\u8207\u98A8\u96AA\u652F\u51FA\uFF0C\u53EF\u9078\u64C7\u300C\u6708\u300D\u6216\u300C\u5E74\u300D\uFF0C\u7CFB\u7D71\u6703\u63DB\u7B97\u6210\u6708\u5747\u652F\u51FA\u3002"
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
           style: {
             display: "flex",
             alignItems: "center",
             gap: 8,
             fontFamily: "'Noto Serif TC', serif",
             fontSize: 18,
-            margin: "20px 0 12px"
+            margin: "0 0 12px"
           },
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(ArrowDownCircle, {
             size: 19
-          }), "\u652F\u51FA\u8207\u5132\u84C4"]
+          }), "\u652F\u51FA\u7D00\u9304"]
         }), /*#__PURE__*/(0, _jsxRuntime.jsx)(CategoryBlock, {
           title: "\u6D88\u8CBB\u652F\u51FA",
           accent: "#A24B3F",
@@ -1008,13 +1302,26 @@ function FinancialHealthApp() {
           style: {
             marginTop: 8,
             padding: 16,
+            background: "#FFF1EF",
+            borderRadius: 12,
+            border: "1px solid #E8B8B2",
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: 14
+          },
+          children: ["\u6708\u652F\u51FA\u5408\u8A08 ", /*#__PURE__*/(0, _jsxRuntime.jsx)("strong", {
+            children: fmt(calc.totalExpense + calc.totalSaving + calc.totalRisk)
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            marginTop: 10,
+            padding: 16,
             background: "#fff",
             borderRadius: 12,
             border: `1px solid ${LINE}`,
             fontFamily: "'IBM Plex Mono', monospace",
             fontSize: 14
           },
-          children: ["\u6708\u6536\u5165 ", fmt(calc.totalIncome), "\u3000\u6708\u652F\u51FA ", fmt(calc.totalExpense + calc.totalSaving + calc.totalRisk), "\u3000 \u6DE8\u73FE\u91D1\u6D41 ", /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+          children: ["\u6DE8\u73FE\u91D1\u6D41 ", /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
             style: {
               color: calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk >= 0 ? "#3E7A4F" : "#A24B3F"
             },
@@ -1121,41 +1428,30 @@ function FinancialHealthApp() {
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Gauge, {
             size: 19
           }), "\u4EBA\u751F\u9EC3\u91D1\u5206\u914D\u6BD4\u4F8B"]
-        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           style: {
             display: "flex",
             flexWrap: "wrap",
             gap: 14,
             marginBottom: 24
           },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-            icon: /*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
+          children: indicators.slice(0, 3).map((it, idx) => {
+            const icons = [/*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
               size: 17
-            }),
-            title: "\u751F\u6D3B\u652F\u51FA\u4F54\u6BD4",
-            value: pct(calc.lifeRatio),
-            target: "\u2264 60%",
-            level: calc.lifeLevel,
-            advice: calc.lifeLevel === "green" ? "支出控制得當，財務空間健康。" : calc.lifeLevel === "yellow" ? "生活支出開始擠壓財務空間，建議檢視非必要開銷。" : "入不敷出風險高，建議優先削減固定與變動支出。"
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-            icon: /*#__PURE__*/(0, _jsxRuntime.jsx)(TrendingUp, {
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(TrendingUp, {
               size: 17
-            }),
-            title: "\u5132\u84C4\u6295\u8CC7\u4F54\u6BD4",
-            value: pct(calc.savingRatio),
-            target: "\u2265 30%",
-            level: calc.savingLevel,
-            advice: calc.savingLevel === "green" ? "儲蓄動能充足，資產可持續累積。" : calc.savingLevel === "yellow" ? "累積速度偏慢，可評估提高定期定額金額。" : "財富成長嚴重不足，建議重新檢視收支結構，提高儲蓄比例。"
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-            icon: /*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
               size: 17
-            }),
-            title: "\u4FDD\u96AA\u4F54\u6BD4",
-            value: pct(calc.riskRatio),
-            target: "5% ~ 15%",
-            level: calc.riskLevel,
-            advice: calc.riskLevel === "green" ? "保障與保費負擔相對平衡。" : calc.riskRatio < 0.05 ? "保障可能不足，建議檢視風險缺口。" : "保費佔比偏高，建議檢視險種結構是否重複或過量。"
-          })]
+            })];
+            return /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
+              icon: icons[idx],
+              title: it.title,
+              value: it.value,
+              target: it.target,
+              level: it.level,
+              advice: it.advice
+            }, it.title);
+          })
         }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
           style: {
             display: "flex",
@@ -1168,31 +1464,27 @@ function FinancialHealthApp() {
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
             size: 19
           }), "\u9810\u5099\u91D1\u8207\u8CC7\u7522\u914D\u7F6E"]
-        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
           style: {
             display: "flex",
             flexWrap: "wrap",
             gap: 14
           },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-            icon: /*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
+          children: indicators.slice(3).map((it, idx) => {
+            const icons = [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
               size: 17
-            }),
-            title: "\u7DCA\u6025\u9810\u5099\u91D1",
-            value: `${calc.emergencyMonths.toFixed(1)} 個月`,
-            target: "\u2265 6 \u500B\u6708",
-            level: calc.emergencyLevel,
-            advice: calc.emergencyLevel === "green" ? "現金水位安全，足以應對突發狀況。" : calc.emergencyLevel === "yellow" ? "可接受，但建議持續補足現金水位。" : "高風險，建議優先暫緩投資，把現金拉高到 3 個月以上。"
-          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-            icon: /*#__PURE__*/(0, _jsxRuntime.jsx)(AlertTriangle, {
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(AlertTriangle, {
               size: 17
-            }),
-            title: "\u8CC7\u7522\u914D\u7F6E\u98A8\u96AA",
-            value: pct(calc.highPct),
-            target: "\u9AD8\u6CE2\u52D5 \u2264 50%",
-            level: calc.assetLevel,
-            advice: calc.assetNote
-          })]
+            })];
+            return /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
+              icon: icons[idx],
+              title: it.title,
+              value: it.value,
+              target: it.target,
+              level: it.level,
+              advice: it.advice
+            }, it.title);
+          })
         })]
       })]
     }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
@@ -1359,6 +1651,48 @@ function FinancialHealthApp() {
           fontSize: 15,
           margin: "0 0 8px"
         },
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(FileSpreadsheet, {
+          size: 15
+        }), "\u8CC7\u7522\u660E\u7D30"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ReportTable, {
+        columns: [{
+          key: "type",
+          label: "分類"
+        }, {
+          key: "name",
+          label: "項目"
+        }, {
+          key: "amount",
+          label: "原幣金額",
+          mono: true,
+          align: "right",
+          render: row => fmt(row.amount)
+        }, {
+          key: "currency",
+          label: "幣別"
+        }, {
+          key: "rate",
+          label: "匯率",
+          mono: true,
+          align: "right",
+          render: row => row.rate === "" ? "" : Number(row.rate).toFixed(row.currency === "JPY" ? 3 : 2)
+        }, {
+          key: "twd",
+          label: "台幣換算",
+          mono: true,
+          align: "right",
+          render: row => row.rate === "" ? "" : fmt(row.twd)
+        }],
+        rows: assetDetailRows
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "'Noto Serif TC', serif",
+          fontSize: 15,
+          margin: "0 0 8px"
+        },
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
           size: 15
         }), "\u6708\u6536\u652F\u6982\u6CC1"]
@@ -1367,6 +1701,80 @@ function FinancialHealthApp() {
           fontSize: 13
         },
         children: ["\u6708\u6536\u5165 ", fmt(calc.totalIncome), "\u3000\u6708\u652F\u51FA ", fmt(calc.totalExpense + calc.totalSaving + calc.totalRisk), "\u3000 \u6DE8\u73FE\u91D1\u6D41 ", fmt(calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk)]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "'Noto Serif TC', serif",
+          fontSize: 15,
+          margin: "18px 0 8px"
+        },
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Banknote, {
+          size: 15
+        }), "\u6536\u5165\u660E\u7D30"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ReportTable, {
+        columns: [{
+          key: "type",
+          label: "類型"
+        }, {
+          key: "name",
+          label: "項目"
+        }, {
+          key: "amount",
+          label: "金額",
+          mono: true,
+          align: "right",
+          render: row => fmt(parseFloat(row.amount) || 0)
+        }, {
+          key: "freq",
+          label: "週期",
+          render: row => freqLabel(row.freq)
+        }, {
+          key: "monthly",
+          label: "月均額",
+          mono: true,
+          align: "right",
+          render: row => fmt(monthly(row))
+        }],
+        rows: incomeDetailRows
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "'Noto Serif TC', serif",
+          fontSize: 15,
+          margin: "18px 0 8px"
+        },
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(ArrowDownCircle, {
+          size: 15
+        }), "\u652F\u51FA\u660E\u7D30"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ReportTable, {
+        columns: [{
+          key: "type",
+          label: "類型"
+        }, {
+          key: "name",
+          label: "項目"
+        }, {
+          key: "amount",
+          label: "金額",
+          mono: true,
+          align: "right",
+          render: row => fmt(parseFloat(row.amount) || 0)
+        }, {
+          key: "freq",
+          label: "週期",
+          render: row => freqLabel(row.freq)
+        }, {
+          key: "monthly",
+          label: "月均額",
+          mono: true,
+          align: "right",
+          render: row => fmt(monthly(row))
+        }],
+        rows: expenseDetailRows
       })]
     })]
   });
@@ -1377,3 +1785,4 @@ ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/(0, _js
 </body>
 
 </html>
+
