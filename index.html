@@ -30,11 +30,41 @@
 
   * { box-sizing: border-box; }
 
-  body { margin: 0; }
+  html, body { margin: 0; width: 100%; overflow-x: hidden; }
 
   input::placeholder { color: #B7AF9C; }
 
   .print-only { display: none; }
+
+  .item-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #D8CDBB; }
+
+  .app-nav { display: flex; gap: 4px; margin-bottom: 26px; border-bottom: 1px solid #D8CDBB; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+
+  .app-nav::-webkit-scrollbar { display: none; }
+
+  @media (max-width: 640px) {
+
+    .app-screen { width: 100%; max-width: 100% !important; padding: 18px 14px 44px !important; overflow-x: hidden; }
+
+    .app-header { display: grid !important; grid-template-columns: 1fr; align-items: start !important; gap: 12px !important; }
+
+    .app-title-kicker { font-size: 10px !important; letter-spacing: 1.6px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .app-title { font-size: 26px !important; }
+
+    .name-field { width: 100% !important; }
+
+    .app-nav { margin-left: -14px; margin-right: -14px; padding: 0 14px; }
+
+    .app-nav button { flex: 0 0 auto; margin-right: 10px !important; font-size: 14px !important; white-space: nowrap; }
+
+    .item-row { display: grid; grid-template-columns: minmax(88px, 0.85fr) minmax(120px, 1.15fr) auto; align-items: center; gap: 8px; padding: 10px 0; }
+
+    .item-row .item-currency, .item-row .item-rate, .item-row .item-twd, .item-row .item-frequency { grid-column: 2 / 4; width: 100% !important; }
+
+    .item-row .item-delete { grid-column: 3; grid-row: 1; justify-self: end; }
+
+  }
 
   @media print {
 
@@ -371,19 +401,15 @@ function ItemRow({
   const showRateInput = showCurrency && currency !== "TWD";
   const resolvedRate = itemRate(item, rates);
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-    style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 8,
-      padding: "7px 0",
-      borderBottom: `1px solid ${LINE}`
-    },
+    className: "item-row",
     children: [locked ? /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
       style: {
         flex: `0 0 ${labelWidth}px`,
+        minWidth: 0,
         fontSize: 14,
         color: INK,
-        fontFamily: "'Noto Sans TC', sans-serif"
+        fontFamily: "'Noto Sans TC', sans-serif",
+        wordBreak: "break-word"
       },
       children: item.name
     }) : /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
@@ -425,6 +451,7 @@ function ItemRow({
         background: "#fff"
       }
     }), showCurrency && /*#__PURE__*/(0, _jsxRuntime.jsx)("select", {
+      className: "item-currency",
       value: item.currency || "TWD",
       onChange: e => onChange({
         ...item,
@@ -445,6 +472,7 @@ function ItemRow({
         children: c.code
       }, c.code))
     }), showRateInput && /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+      className: "item-rate",
       type: "number",
       value: item.rate ?? rates[currency] ?? "",
       onChange: e => onChange({
@@ -465,6 +493,7 @@ function ItemRow({
         background: "#fff"
       }
     }), showRateInput && /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+      className: "item-twd",
       style: {
         flex: "0 0 112px",
         textAlign: "right",
@@ -474,6 +503,7 @@ function ItemRow({
       },
       children: resolvedRate ? `NT$ ${fmt(amountTwd(item, rates))}` : "輸入匯率"
     }), showFreq && /*#__PURE__*/(0, _jsxRuntime.jsxs)("select", {
+      className: "item-frequency",
       value: item.freq,
       onChange: e => onChange({
         ...item,
@@ -496,6 +526,7 @@ function ItemRow({
         children: "\u5E74"
       })]
     }), !locked && /*#__PURE__*/(0, _jsxRuntime.jsx)("button", {
+      className: "item-delete",
       onClick: onRemove,
       "aria-label": "\u522A\u9664\u9805\u76EE",
       style: {
@@ -823,7 +854,7 @@ function NumberField({
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("label", {
     style: {
       display: "grid",
-      gridTemplateRows: "42px 46px 18px",
+      gridTemplateRows: "42px 46px",
       gap: 6,
       minWidth: 0,
       alignSelf: "stretch",
@@ -839,31 +870,47 @@ function NumberField({
         fontWeight: 700
       },
       children: label
-    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
-      type: "number",
-      value: value,
-      onChange: e => onChange(e.target.value),
-      placeholder: hint || "請輸入",
+    }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("span", {
       style: {
-        width: "100%",
-        height: 46,
-        boxSizing: "border-box",
-        border: `1px solid ${LINE}`,
-        borderRadius: 8,
-        padding: "8px 10px",
-        fontSize: 14,
-        fontFamily: "'IBM Plex Mono', monospace",
-        color: INK,
-        background: "#fff"
-      }
-    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
-      style: {
-        minHeight: 18,
-        fontSize: 11,
-        color: "#9B9181",
-        lineHeight: 1.25
+        position: "relative",
+        display: "block",
+        minWidth: 0
       },
-      children: suffix || " "
+      children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+        type: "number",
+        value: value,
+        onChange: e => onChange(e.target.value),
+        placeholder: hint || "請輸入",
+        style: {
+          width: "100%",
+          height: 46,
+          boxSizing: "border-box",
+          border: `1px solid ${LINE}`,
+          borderRadius: 8,
+          padding: suffix ? "8px 72px 8px 10px" : "8px 10px",
+          fontSize: 14,
+          fontFamily: "'IBM Plex Mono', monospace",
+          color: INK,
+          background: "#fff"
+        }
+      }), suffix && /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+        style: {
+          position: "absolute",
+          right: 10,
+          top: "50%",
+          transform: "translateY(-50%)",
+          maxWidth: 62,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          fontSize: 11,
+          color: "#9B9181",
+          lineHeight: 1.25,
+          pointerEvents: "none",
+          textAlign: "right"
+        },
+        children: suffix
+      })]
     })]
   });
 }
@@ -1293,6 +1340,7 @@ function FinancialHealthApp() {
         padding: "28px 20px 60px"
       },
       children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("header", {
+        className: "app-header",
         style: {
           marginBottom: 22,
           display: "flex",
@@ -1303,6 +1351,7 @@ function FinancialHealthApp() {
         },
         children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            className: "app-title-kicker",
             style: {
               fontSize: 12,
               letterSpacing: 2,
@@ -1311,6 +1360,7 @@ function FinancialHealthApp() {
             },
             children: "FINANCIAL CHECK-UP"
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("h1", {
+            className: "app-title",
             style: {
               fontFamily: "'Noto Serif TC', serif",
               fontWeight: 900,
@@ -1332,6 +1382,7 @@ function FinancialHealthApp() {
             value: name,
             onChange: e => setName(e.target.value),
             placeholder: "\u8ACB\u8F38\u5165\u59D3\u540D",
+            className: "name-field",
             style: {
               border: `1px solid ${LINE}`,
               borderRadius: 8,
@@ -1345,12 +1396,7 @@ function FinancialHealthApp() {
           })]
         })]
       }), /*#__PURE__*/(0, _jsxRuntime.jsx)("nav", {
-        style: {
-          display: "flex",
-          gap: 4,
-          marginBottom: 26,
-          borderBottom: `1px solid ${LINE}`
-        },
+        className: "app-nav",
         children: tabs.map(t => /*#__PURE__*/(0, _jsxRuntime.jsxs)("button", {
           onClick: () => setTab(t.key),
           style: {
@@ -1807,7 +1853,7 @@ function FinancialHealthApp() {
           }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
             style: {
               display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))",
               gap: 12,
               marginBottom: 16
             },
@@ -1863,7 +1909,7 @@ function FinancialHealthApp() {
           }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
             style: {
               display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 150px), 1fr))",
               gap: 10
             },
             children: [{
@@ -1923,26 +1969,26 @@ function FinancialHealthApp() {
           }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
             style: {
               display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 210px), 1fr))",
               gap: 12,
               marginBottom: 16
             },
             children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
-              label: "\u55AE\u7B46\u4E00\uFF1A\u76EE\u524D\u91D1\u984D",
+              label: "\u55AE\u7B46\uFF1A\u76EE\u524D\u91D1\u984D",
               value: retirement.lump1,
               onChange: v => setRetirement(p => ({
                 ...p,
                 lump1: v
               }))
             }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
-              label: "\u55AE\u7B46\u4E00\uFF1A\u7D2F\u7A4D\u5E74\u6578",
+              label: "\u55AE\u7B46\uFF1A\u7D2F\u7A4D\u5E74\u6578",
               value: retirement.lump1Years,
               onChange: v => setRetirement(p => ({
                 ...p,
                 lump1Years: v
               }))
             }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
-              label: "\u55AE\u7B46\u4E00\uFF1A\u5E74\u6536\u76CA\u7387",
+              label: "\u55AE\u7B46\uFF1A\u5E74\u6536\u76CA\u7387",
               value: retirement.lump1Return,
               onChange: v => setRetirement(p => ({
                 ...p,
@@ -1983,7 +2029,7 @@ function FinancialHealthApp() {
           }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
             style: {
               display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 220px), 1fr))",
               gap: 10
             },
             children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
@@ -2582,5 +2628,3 @@ ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/(0, _js
 </body>
 
 </html>
-
-
