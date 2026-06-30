@@ -18,8 +18,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
- <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/55365787743_9386aa9e75_m.jpg">
-    <link rel="icon" type="image/png" href="https://live.staticflickr.com/65535/55365787743_9386aa9e75_m.jpg">
+ <link rel="apple-touch-icon" href="https://live.staticflickr.com/65535/55365913230_0d9a831597_m.jpg">
+    <link rel="icon" type="image/png" href="https://live.staticflickr.com/65535/55365913230_0d9a831597_m.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&display=swap" rel="stylesheet">
 
  
@@ -209,7 +209,7 @@ const ASSET_GROUPS = [{
   label: "高波動資產",
   color: "#A24B3F",
   Icon: TrendingUp,
-  presets: ["房地產", "股票", "衍生性金融商品"]
+  presets: ["投資型房地產", "股票", "衍生性金融商品"]
 }];
 const INCOME_GROUPS = [{
   key: "active",
@@ -222,9 +222,27 @@ const INCOME_GROUPS = [{
   Icon: Coins,
   presets: ["保險生存金", "定存利息", "配息", "房租收入"]
 }];
-const EXPENSE_PRESETS = ["孝親費", "伙食費", "日用品", "治裝費", "個人保養", "房貸", "汽機車貸款", "房租", "水電瓦斯管理費", "房屋稅金", "所得稅", "油錢", "汽機車保養", "車險", "子女教育金", "成長進修費", "娛樂費", "訂閱費", "信貸", "網路電話費", "婚喪喜慶", "寵物開支", "醫療費用", "旅遊費"];
+const EXPENSE_PRESETS = ["伙食費", "治裝保養費", "自住房貸／房租", "水電瓦斯管理費", "裝修／房屋稅金", "所得稅", "油錢／車資", "汽機車保險", "停車／罰款", "汽機車維修保養", "汽機車稅金", "孝親費", "成長／進修費", "娛樂費", "信用貸款", "網路／電話費", "婚喪喜慶", "寵物", "日用品", "旅遊費", "醫療費用"];
 const SAVING_PRESETS = ["股票", "定存", "基金", "壽險", "投資型保單", "外幣"];
 const RISK_PRESETS = ["社會保險", "保障型保險", "產險"];
+const ITEM_NAME_ALIASES = {
+  "房地產": "投資型房地產",
+  "車險": "汽機車保險",
+  "汽機車保養": "汽機車維修保養",
+  "油錢": "油錢／車資",
+  "治裝費": "治裝保養費",
+  "個人保養": "治裝保養費",
+  "房貸": "自住房貸／房租",
+  "房租": "自住房貸／房租",
+  "房屋稅金": "裝修／房屋稅金",
+  "信貸": "信用貸款",
+  "網路電話費": "網路／電話費",
+  "寵物開支": "寵物",
+  "成長進修費": "成長／進修費"
+};
+function normalizeItemName(name) {
+  return ITEM_NAME_ALIASES[name] || name;
+}
 const CURRENCIES = [{
   code: "TWD",
   label: "TWD 台幣"
@@ -293,19 +311,19 @@ function Light({
       c: "#10843F",
       bg: "#DDF7E7",
       glow: "#24C86B",
-      label: "綠燈"
+      label: "健康"
     },
     yellow: {
       c: "#B76A00",
       bg: "#FFF0C2",
       glow: "#FFB000",
-      label: "黃燈"
+      label: "普通"
     },
     red: {
       c: "#D91F11",
       bg: "#FFE0DC",
       glow: "#FF3828",
-      label: "紅燈"
+      label: "危險"
     }
   };
   const {
@@ -750,6 +768,105 @@ function ReportTable({
     })]
   });
 }
+function GroupedReportTable({
+  title,
+  rows,
+  emptyText = "目前沒有明細"
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+    style: {
+      marginBottom: 22
+    },
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("h3", {
+      style: {
+        fontFamily: "'Noto Serif TC', serif",
+        fontSize: 17,
+        margin: "0 0 8px",
+        display: "flex",
+        alignItems: "center",
+        gap: 8
+      },
+      children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+        style: {
+          width: 7,
+          height: 24,
+          borderRadius: 4,
+          background: INK,
+          display: "inline-block"
+        }
+      }), title]
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ReportTable, {
+      columns: [{
+        key: "item",
+        label: "項目"
+      }, {
+        key: "value",
+        label: "數值",
+        mono: true,
+        align: "right"
+      }, {
+        key: "note",
+        label: "說明"
+      }],
+      rows: rows,
+      emptyText: emptyText
+    })]
+  });
+}
+function NumberField({
+  label,
+  value,
+  onChange,
+  suffix,
+  hint
+}) {
+  return /*#__PURE__*/(0, _jsxRuntime.jsxs)("label", {
+    style: {
+      display: "grid",
+      gridTemplateRows: "42px 46px 18px",
+      gap: 6,
+      minWidth: 0,
+      alignSelf: "stretch",
+      fontSize: 13,
+      color: "#5A5443"
+    },
+    children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+      style: {
+        display: "flex",
+        alignItems: "flex-end",
+        minHeight: 42,
+        lineHeight: 1.35,
+        fontWeight: 700
+      },
+      children: label
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("input", {
+      type: "number",
+      value: value,
+      onChange: e => onChange(e.target.value),
+      placeholder: hint || "請輸入",
+      style: {
+        width: "100%",
+        height: 46,
+        boxSizing: "border-box",
+        border: `1px solid ${LINE}`,
+        borderRadius: 8,
+        padding: "8px 10px",
+        fontSize: 14,
+        fontFamily: "'IBM Plex Mono', monospace",
+        color: INK,
+        background: "#fff"
+      }
+    }), /*#__PURE__*/(0, _jsxRuntime.jsx)("span", {
+      style: {
+        minHeight: 18,
+        fontSize: 11,
+        color: "#9B9181",
+        lineHeight: 1.25
+      },
+      children: suffix || " "
+    })]
+  });
+}
 function FinancialHealthApp() {
   const [tab, setTab] = useState("asset");
   const [loaded, setLoaded] = useState(false);
@@ -767,6 +884,43 @@ function FinancialHealthApp() {
   const [saving, setSaving] = useState([]);
   const [risk, setRisk] = useState([]);
   const [rates, setRates] = useState(INITIAL_RATES);
+  const [protection, setProtection] = useState({
+    replacementIncome: "",
+    replacementYears: "",
+    medicalReserve: "",
+    criticalCoverage: "",
+    preparedCash: "",
+    roomNeed: "",
+    roomCoverage: "",
+    careNeed: "",
+    careCoverage: "",
+    longTermCareMonthly: "",
+    longTermCareYears: "",
+    longTermPrepared: "",
+    familyResponsibility: "",
+    lifeCoverage: ""
+  });
+  const [retirement, setRetirement] = useState({
+    currentAge: "30",
+    retireAge: "65",
+    lifeAge: "85",
+    monthlyExpense: "",
+    inflationRate: "2",
+    retireReturnRate: "2",
+    lump1: "",
+    lump1Years: "",
+    lump1Return: "",
+    lump2: "",
+    lump2Years: "",
+    lump2Return: "",
+    monthly1: "",
+    monthly1Years: "",
+    monthly1Return: "",
+    monthly2: "",
+    monthly2Years: "",
+    monthly2Return: "",
+    otherPrepared: ""
+  });
   const saveTimer = useRef(null);
   useEffect(() => {
     (async () => {
@@ -785,17 +939,20 @@ function FinancialHealthApp() {
               low: (base.low || []).map(it => ({
                 currency: "TWD",
                 rate: "",
-                ...it
+                ...it,
+                name: normalizeItemName(it.name)
               })),
               mid: (base.mid || []).map(it => ({
                 currency: it.name === "外幣" ? "USD" : "TWD",
                 rate: "",
-                ...it
+                ...it,
+                name: normalizeItemName(it.name)
               })),
               high: (base.high || []).map(it => ({
                 currency: "TWD",
                 rate: "",
-                ...it
+                ...it,
+                name: normalizeItemName(it.name)
               }))
             };
           };
@@ -804,9 +961,14 @@ function FinancialHealthApp() {
             active: [],
             passive: []
           });
-          setExpense(d.expense || []);
+          setExpense((d.expense || []).map(it => ({
+            ...it,
+            name: normalizeItemName(it.name)
+          })));
           setSaving(d.saving || []);
           setRisk(d.risk || []);
+          setProtection(d.protection || protection);
+          setRetirement(d.retirement || retirement);
         }
       } catch (e) {
 
@@ -858,15 +1020,18 @@ function FinancialHealthApp() {
           income,
           expense,
           saving,
-          risk
+          risk,
+          protection,
+          retirement
         }));
       } catch (e) {
         console.error("儲存失敗", e);
       }
     }, 400);
     return () => clearTimeout(saveTimer.current);
-  }, [name, assets, income, expense, saving, risk, loaded]);
+  }, [name, assets, income, expense, saving, risk, protection, retirement, loaded]);
   const calc = useMemo(() => {
+    const num = v => parseFloat(v) || 0;
     const sumStatic = arr => arr.reduce((s, it) => s + amountTwd(it, rates), 0);
     const sumMonthly = arr => arr.reduce((s, it) => s + monthly(it), 0);
     const totalLow = sumStatic(assets.low);
@@ -878,28 +1043,50 @@ function FinancialHealthApp() {
     const totalSaving = sumMonthly(saving);
     const totalRisk = sumMonthly(risk);
     const incomeSafe = totalIncome || 1;
+    const annualIncome = totalIncome * 12;
+    const annualOutflow = (totalExpense + totalSaving + totalRisk) * 12;
     const lifeRatio = totalExpense / incomeSafe;
     const savingRatio = totalSaving / incomeSafe;
     const riskRatio = totalRisk / incomeSafe;
     const cashLike = [...assets.low].filter(it => ["現金", "定存"].includes(it.name));
     const cashTotal = sumStatic(cashLike);
     const emergencyMonths = totalExpense > 0 ? cashTotal / totalExpense : 0;
-    const lifeLevel = lifeRatio <= 0.6 ? "green" : lifeRatio <= 0.7 ? "yellow" : "red";
-    const savingLevel = savingRatio >= 0.3 ? "green" : savingRatio >= 0.15 ? "yellow" : "red";
-    const riskLevel = riskRatio >= 0.05 && riskRatio <= 0.15 ? "green" : riskRatio < 0.05 || riskRatio > 0.15 && riskRatio <= 0.2 ? "yellow" : "red";
-    const emergencyLevel = emergencyMonths >= 6 ? "green" : emergencyMonths >= 3 ? "yellow" : "red";
+    const majorIllnessNeed = num(protection.replacementIncome) * 12 * num(protection.replacementYears) + num(protection.medicalReserve);
+    const majorIllnessGap = Math.max(0, majorIllnessNeed - num(protection.criticalCoverage) - num(protection.preparedCash));
+    const roomGap = Math.max(0, num(protection.roomNeed) - num(protection.roomCoverage));
+    const careGap = Math.max(0, num(protection.careNeed) - num(protection.careCoverage));
+    const longTermCareNeed = num(protection.longTermCareMonthly) * 12 * num(protection.longTermCareYears);
+    const longTermCareGap = Math.max(0, longTermCareNeed - num(protection.longTermPrepared));
+    const familyCoverageGap = Math.max(0, num(protection.familyResponsibility) - num(protection.lifeCoverage));
+    const currentAge = num(retirement.currentAge);
+    const retireAge = num(retirement.retireAge);
+    const lifeAge = num(retirement.lifeAge);
+    const yearsToRetire = Math.max(0, retireAge - currentAge);
+    const retireYears = Math.max(0, lifeAge - retireAge);
+    const inflation = num(retirement.inflationRate) / 100;
+    const retireReturn = num(retirement.retireReturnRate) / 100;
+    const retireMonthlyExpense = num(retirement.monthlyExpense) * Math.pow(1 + inflation, yearsToRetire);
+    const retirementNeed = retireYears <= 0 ? 0 : retireReturn === 0 ? retireMonthlyExpense * 12 * retireYears : retireMonthlyExpense * 12 * (1 - Math.pow(1 + retireReturn, -retireYears)) / retireReturn;
+    const fvLump = (amount, years, rate) => num(amount) * Math.pow(1 + num(rate) / 100, num(years));
+    const fvMonthly = (amount, years, rate) => {
+      const months = num(years) * 12;
+      const mRate = num(rate) / 100 / 12;
+      if (months <= 0) return 0;
+      return mRate === 0 ? num(amount) * months : num(amount) * (Math.pow(1 + mRate, months) - 1) / mRate;
+    };
+    const retirementPrepared = fvLump(retirement.lump1, retirement.lump1Years, retirement.lump1Return) + fvLump(retirement.lump2, retirement.lump2Years, retirement.lump2Return) + fvMonthly(retirement.monthly1, retirement.monthly1Years, retirement.monthly1Return) + fvMonthly(retirement.monthly2, retirement.monthly2Years, retirement.monthly2Return) + num(retirement.otherPrepared);
+    const retirementGap = Math.max(0, retirementNeed - retirementPrepared);
+    const familyProtectionYears = annualOutflow > 0 ? num(protection.lifeCoverage) / annualOutflow : 0;
+    const retirementReadyRatio = retirementNeed > 0 ? retirementPrepared / retirementNeed : 0;
+    const emergencyLevel = emergencyMonths >= 4 && emergencyMonths < 10 ? "green" : emergencyMonths >= 10 ? "yellow" : "red";
+    const lifeLevel = lifeRatio <= 0.5 ? "green" : lifeRatio <= 0.6 ? "yellow" : "red";
+    const savingLevel = savingRatio >= 0.35 ? "green" : savingRatio >= 0.2 ? "yellow" : "red";
+    const riskLevel = riskRatio >= 0.1 && riskRatio <= 0.15 ? "green" : riskRatio > 0.15 ? "yellow" : "red";
+    const familyLevel = familyProtectionYears >= 15 ? "green" : familyProtectionYears >= 10 ? "yellow" : "red";
+    const retirementLevel = retirementReadyRatio >= 0.6 ? "green" : retirementReadyRatio >= 0.3 ? "yellow" : "red";
     const highPct = totalHigh / totalAssets;
     const lowPct = totalLow / totalAssets;
-    let assetLevel = "green";
-    let assetNote = "資產配置分布尚屬均衡，可維持目前節奏，並定期檢查現金、穩健型工具與成長型資產是否仍符合你的年齡、收入穩定度與可承受波動。";
-    if (highPct > 0.5) {
-      assetLevel = "red";
-      assetNote = "高波動資產佔比過高，市場修正時整體資產可能快速縮水。建議先確認 6 個月預備金，再逐步把部分資金移回現金、定存或較穩健工具，避免短期需要用錢時被迫賣出。";
-    } else if (lowPct > 0.8 && totalSaving === 0) {
-      assetLevel = "yellow";
-      assetNote = "資產多集中於低波動工具且目前沒有固定投資，短期安全感足夠，但長期可能被通膨吃掉購買力。建議從小額定期定額開始，建立可持續的成長型配置。";
-    }
-    const levels = [lifeLevel, savingLevel, riskLevel, emergencyLevel, assetLevel];
+    const levels = [emergencyLevel, lifeLevel, savingLevel, riskLevel, familyLevel, retirementLevel];
     const score = levels.reduce((s, l) => s + (l === "green" ? 2 : l === "yellow" ? 1 : 0), 0);
     const maxScore = levels.length * 2;
     const ratioScore = score / maxScore;
@@ -914,22 +1101,40 @@ function FinancialHealthApp() {
       totalExpense,
       totalSaving,
       totalRisk,
+      annualIncome,
+      annualOutflow,
       lifeRatio,
       savingRatio,
       riskRatio,
       emergencyMonths,
+      cashTotal,
       lifeLevel,
       savingLevel,
       riskLevel,
       emergencyLevel,
-      assetLevel,
-      assetNote,
+      majorIllnessNeed,
+      majorIllnessGap,
+      roomGap,
+      careGap,
+      longTermCareNeed,
+      longTermCareGap,
+      familyCoverageGap,
+      yearsToRetire,
+      retireYears,
+      retireMonthlyExpense,
+      retirementNeed,
+      retirementPrepared,
+      retirementGap,
+      familyProtectionYears,
+      retirementReadyRatio,
+      familyLevel,
+      retirementLevel,
       highPct,
       lowPct,
       grade,
       redCount
     };
-  }, [assets, income, expense, saving, risk, rates]);
+  }, [assets, income, expense, saving, risk, protection, retirement, rates]);
   const gradeColor = {
     A: "#3E7A4F",
     B: "#6E8B3A",
@@ -939,44 +1144,50 @@ function FinancialHealthApp() {
   const gradeText = {
     A: "財務體質優良，各項指標表現穩健。",
     B: "財務體質良好，部分指標尚有調整空間。",
-    C: "財務體質普通，建議優先處理紅黃燈項目。",
+    C: "財務體質普通，建議優先處理普通與危險項目。",
     D: "財務體質需要關注，建議盡快調整收支與資產結構。"
   }[calc.grade];
   const indicators = [{
-    title: "生活支出佔比",
-    value: pct(calc.lifeRatio),
-    target: "≤ 60%",
-    level: calc.lifeLevel,
-    advice: calc.lifeLevel === "green" ? "生活支出控制在健康範圍內，代表收入仍有餘裕分配到儲蓄、投資與保障。建議維持固定記帳，避免新訂閱、分期與衝動消費慢慢墊高基本開銷。" : calc.lifeLevel === "yellow" ? "生活支出已開始壓縮財務彈性，若收入短期波動，現金流會比較緊。建議先檢查房租房貸、交通、訂閱、娛樂與外食，挑 2 到 3 個項目設定月上限。" : "生活支出佔比過高，代表收入大多被日常開銷吃掉，遇到突發狀況容易靠信用或動用投資。建議立刻列出固定支出與可變支出，先砍非必要項目，再重新設定每月可花費上限。"
-  }, {
-    title: "儲蓄投資佔比",
-    value: pct(calc.savingRatio),
-    target: "≥ 30%",
-    level: calc.savingLevel,
-    advice: calc.savingLevel === "green" ? "儲蓄與投資動能充足，資產有機會穩定累積。建議把投資分成短中長期目標，並確認風險配置不是只追求報酬，而是能長期持有。" : calc.savingLevel === "yellow" ? "目前有在累積資產，但速度偏慢，長期目標可能需要更久才達成。建議先把加薪、獎金或額外收入的一部分自動轉入投資或儲蓄帳戶，降低被花掉的機率。" : "儲蓄投資比例明顯不足，財富成長會被生活支出與通膨拖住。建議先設定一個最低自動儲蓄金額，從收入入帳當天先轉出，而不是月底剩多少才存多少。"
-  }, {
-    title: "保險佔比",
-    value: pct(calc.riskRatio),
-    target: "5% ~ 15%",
-    level: calc.riskLevel,
-    advice: calc.riskLevel === "green" ? "保費負擔與保障配置大致平衡。建議定期檢查醫療、重大疾病、失能、壽險與責任風險是否符合目前家庭責任，不只看保費比例。" : calc.riskRatio < 0.05 ? "保費佔比偏低，可能代表保障不足或風險缺口尚未盤點。建議先確認高衝擊風險，例如醫療、失能、家庭主要收入中斷，再補足必要保障。" : "保費佔比偏高，容易排擠生活、儲蓄與投資預算。建議檢查是否有重複保障、投資型保單費用過高，或已不符合現況的舊保單，優先調整效率差的項目。"
-  }, {
     title: "緊急預備金",
     value: `${calc.emergencyMonths.toFixed(1)} 個月`,
-    target: "≥ 6 個月",
+    target: "健康 4-9.9 個月",
     level: calc.emergencyLevel,
-    advice: calc.emergencyLevel === "green" ? "預備金水位充足，遇到失業、醫療或家庭急用時比較不需要賣投資或借貸。建議把這筆錢放在高流動、低風險的位置，避免拿去追求高報酬。" : calc.emergencyLevel === "yellow" ? "預備金尚可但不算寬裕，短期突發事件可能讓現金流緊繃。建議每月固定補水位，先把目標拉到 6 個月，再考慮提高投資比例。" : "預備金不足是高優先級警訊，任何突發支出都可能打亂整體財務。建議暫緩增加高風險投資，先把現金補到至少 3 個月，再逐步拉到 6 個月。"
+    advice: calc.emergencyLevel === "green" ? "預備金足以支應短期收入中斷，可維持目前水位並避免過度閒置。" : calc.emergencyLevel === "yellow" ? "預備金偏高或略需調整，建議保留必要水位後，把超額資金依目標配置。" : "預備金不足，建議優先累積至少 4 個月必要支出，再安排投資或長期保單。"
   }, {
-    title: "資產配置風險",
-    value: pct(calc.highPct),
-    target: "高波動 ≤ 50%",
-    level: calc.assetLevel,
-    advice: calc.assetNote
+    title: "消費支出比例",
+    value: pct(calc.lifeRatio),
+    target: "健康 ≤50%",
+    level: calc.lifeLevel,
+    advice: calc.lifeLevel === "green" ? "消費支出占收入比例健康，現金流有餘裕支援投資、保障與退休目標。" : calc.lifeLevel === "yellow" ? "消費比例略高，建議檢視固定支出與可變動支出，先設定每月上限。" : "消費支出壓力偏高，可能壓縮儲蓄與保障，建議優先調整非必要開銷。"
+  }, {
+    title: "投資理財比例",
+    value: pct(calc.savingRatio),
+    target: "健康 ≥35%",
+    level: calc.savingLevel,
+    advice: calc.savingLevel === "green" ? "投資理財投入充足，對退休與中長期資產累積有幫助。" : calc.savingLevel === "yellow" ? "投資理財比例尚可，可依收入增加逐步提高定期投入。" : "投資理財比例偏低，建議先建立固定小額投入習慣，讓資產累積不中斷。"
+  }, {
+    title: "風險管理維持比例",
+    value: pct(calc.riskRatio),
+    target: "健康 10%-15%",
+    level: calc.riskLevel,
+    advice: calc.riskLevel === "green" ? "風險管理支出落在合理區間，建議定期檢查保單內容與保費效率。" : calc.riskLevel === "yellow" ? "風險管理支出偏高，需確認是否有重複保障或保費排擠其他目標。" : "風險管理投入偏低，可能有醫療、重大傷病、失能或家庭責任缺口。"
+  }, {
+    title: "家庭保障值",
+    value: `${calc.familyProtectionYears.toFixed(1)} 年`,
+    target: "健康 ≥15 年",
+    level: calc.familyLevel,
+    advice: calc.familyLevel === "green" ? "家庭保障年數充足，能較完整承接家庭經濟責任。" : calc.familyLevel === "yellow" ? "家庭保障尚可，但仍建議依責任期間、房貸與扶養人數補強。" : "家庭保障不足，若主要收入中斷，家庭責任可能無法被承接，建議優先檢視壽險缺口。"
+  }, {
+    title: "退休準備比例",
+    value: pct(calc.retirementReadyRatio),
+    target: "健康 ≥60%",
+    level: calc.retirementLevel,
+    advice: calc.retirementLevel === "green" ? "退休準備進度相對充足，建議定期追蹤通膨與投資報酬是否符合假設。" : calc.retirementLevel === "yellow" ? "退休準備進度普通，建議提高退休專戶投入並持續追蹤缺口。" : "退休準備比例偏低，建議及早設定退休生活費、退休年齡與固定投入金額。"
   }];
   const levelLabel = {
-    green: "綠燈",
-    yellow: "黃燈",
-    red: "紅燈"
+    green: "健康",
+    yellow: "普通",
+    red: "危險"
   };
   const assetDetailRows = ASSET_GROUPS.flatMap(g => assets[g.key].map(it => ({
     type: g.label,
@@ -1025,10 +1236,14 @@ function FinancialHealthApp() {
     expenseRows.push(["", "月總支出", "", "", calc.totalExpense + calc.totalSaving + calc.totalRisk]);
     expenseRows.push(["", "淨現金流", "", "", calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk]);
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expenseRows), "支出紀錄");
+    const protectionRows = [["項目", "需求／輸入", "已準備", "缺口"], ["重大疾病總需求", calc.majorIllnessNeed, (parseFloat(protection.criticalCoverage) || 0) + (parseFloat(protection.preparedCash) || 0), calc.majorIllnessGap], ["病房費不足／日", parseFloat(protection.roomNeed) || 0, parseFloat(protection.roomCoverage) || 0, calc.roomGap], ["看護不足／日", parseFloat(protection.careNeed) || 0, parseFloat(protection.careCoverage) || 0, calc.careGap], ["長照需求總額", calc.longTermCareNeed, parseFloat(protection.longTermPrepared) || 0, calc.longTermCareGap], ["家庭責任保障缺口", parseFloat(protection.familyResponsibility) || 0, parseFloat(protection.lifeCoverage) || 0, calc.familyCoverageGap]];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(protectionRows), "保障需求");
+    const retirementRows = [["項目", "數值"], ["目前年齡", parseFloat(retirement.currentAge) || 0], ["預計退休年齡", parseFloat(retirement.retireAge) || 0], ["預計平均餘命／壽命", parseFloat(retirement.lifeAge) || 0], ["距離退休年數", calc.yearsToRetire], ["退休生活年數", calc.retireYears], ["退休時每月生活費", calc.retireMonthlyExpense], ["所需退休金", calc.retirementNeed], ["已準備退休金", calc.retirementPrepared], ["退休缺口", calc.retirementGap], ["備註", "不含社保、勞保、勞退準備"]];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(retirementRows), "退休規劃");
     const sumRows = [["姓名", name || "未填寫"], ["匯出日期", today], ["整體健康度", calc.grade], []];
-    sumRows.push(["指標", "數值", "建議區間", "燈號", "健檢建議"]);
+    sumRows.push(["指標", "數值", "判斷標準", "狀態", "健檢建議"]);
     indicators.forEach(i => sumRows.push([i.title, i.value, i.target, levelLabel[i.level], i.advice]));
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), "健檢摘要");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sumRows), "健診指標");
     XLSX.writeFile(wb, `理財健檢_${name || "使用者"}_${today}.xlsx`);
   };
   const exportPDF = () => {
@@ -1047,9 +1262,21 @@ function FinancialHealthApp() {
     label: "支出紀錄",
     Icon: ArrowDownCircle
   }, {
+    key: "protection",
+    label: "保障需求",
+    Icon: ShieldCheck
+  }, {
+    key: "retirement",
+    label: "退休規劃",
+    Icon: PiggyBank
+  }, {
     key: "dashboard",
-    label: "健檢結果",
+    label: "健診指標",
     Icon: Gauge
+  }, {
+    key: "report",
+    label: "總覽報告",
+    Icon: FileText
   }];
   return /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
     style: {
@@ -1328,7 +1555,569 @@ function FinancialHealthApp() {
             children: fmt(calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk)
           })]
         })]
+      }), tab === "protection" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("p", {
+          style: {
+            fontSize: 13,
+            color: "#5A5443",
+            marginTop: -8,
+            marginBottom: 18
+          },
+          children: "\u4F9D\u7167\u9700\u6C42\u8AAA\u660E\u9010\u9805\u586B\u5165\uFF0C\u7CFB\u7D71\u6703\u8A08\u7B97\u91CD\u5927\u75BE\u75C5\u3001\u91AB\u7642\u770B\u8B77\u3001\u9577\u7167\u8207\u5BB6\u5EAD\u8CAC\u4EFB\u7684\u4FDD\u969C\u7F3A\u53E3\u3002"
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "'Noto Serif TC', serif",
+            fontSize: 18,
+            margin: "0 0 12px"
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
+            size: 19
+          }), "\u91CD\u5927\u75BE\u75C5\u8207\u6536\u5165\u66FF\u4EE3"]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+            marginBottom: 16
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5982\u679C\u7121\u6CD5\u5DE5\u4F5C\uFF0C\u6BCF\u6708\u5E0C\u671B\u66FF\u4EE3\u591A\u5C11\u5BB6\u5EAD\u751F\u6D3B\u8CBB\uFF1F",
+            value: protection.replacementIncome,
+            onChange: v => setProtection(p => ({
+              ...p,
+              replacementIncome: v
+            })),
+            suffix: "\u5143\uFF0F\u6708"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u9810\u4F30\u9700\u8981\u6E96\u5099\u5E7E\u5E74\uFF1F",
+            value: protection.replacementYears,
+            onChange: v => setProtection(p => ({
+              ...p,
+              replacementYears: v
+            })),
+            suffix: "\u5E74"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u81EA\u8CBB\u6CBB\u7642\u8207\u4F11\u990A\u9810\u5099\u91D1\uFF1F",
+            value: protection.medicalReserve,
+            onChange: v => setProtection(p => ({
+              ...p,
+              medicalReserve: v
+            })),
+            suffix: "\u5143"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5DF2\u8CFC\u91CD\u5927\u75BE\u75C5\u4E00\u6B21\u7D66\u4ED8\u4FDD\u984D\uFF1F",
+            value: protection.criticalCoverage,
+            onChange: v => setProtection(p => ({
+              ...p,
+              criticalCoverage: v
+            })),
+            suffix: "\u5143"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5176\u4ED6\u5DF2\u6E96\u5099\u91D1\uFF1F",
+            value: protection.preparedCash,
+            onChange: v => setProtection(p => ({
+              ...p,
+              preparedCash: v
+            })),
+            suffix: "\u5143"
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            padding: 14,
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 10,
+            marginBottom: 22,
+            fontFamily: "'IBM Plex Mono', monospace"
+          },
+          children: ["\u91CD\u5927\u75BE\u75C5\u7E3D\u9700\u6C42 ", fmt(calc.majorIllnessNeed), "\u3000\u4E0D\u8DB3\u984D ", /*#__PURE__*/(0, _jsxRuntime.jsx)("strong", {
+            style: {
+              color: calc.majorIllnessGap > 0 ? "#D91F11" : "#10843F"
+            },
+            children: fmt(calc.majorIllnessGap)
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "'Noto Serif TC', serif",
+            fontSize: 18,
+            margin: "0 0 12px"
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(FileText, {
+            size: 19
+          }), "\u4F4F\u9662\u91AB\u7642\u8207\u770B\u8B77"]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+            marginBottom: 16
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5E0C\u671B\u8CA0\u64D4\u7684\u75C5\u623F\u8CBB\u9700\u6C42\uFF1F",
+            value: protection.roomNeed,
+            onChange: v => setProtection(p => ({
+              ...p,
+              roomNeed: v
+            })),
+            suffix: "\u5143\uFF0F\u65E5"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u73FE\u6709\u75C5\u623F\u8CBB\u8CE0\u4ED8\uFF1F",
+            value: protection.roomCoverage,
+            onChange: v => setProtection(p => ({
+              ...p,
+              roomCoverage: v
+            })),
+            suffix: "\u5143\uFF0F\u65E5"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u6BCF\u65E5\u770B\u8B77\u8CBB\u9700\u6C42\uFF1F",
+            value: protection.careNeed,
+            onChange: v => setProtection(p => ({
+              ...p,
+              careNeed: v
+            })),
+            suffix: "\u5143\uFF0F\u65E5"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u73FE\u6709\u770B\u8B77\u4FDD\u969C\uFF1F",
+            value: protection.careCoverage,
+            onChange: v => setProtection(p => ({
+              ...p,
+              careCoverage: v
+            })),
+            suffix: "\u5143\uFF0F\u65E5"
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            padding: 14,
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 10,
+            marginBottom: 22,
+            fontFamily: "'IBM Plex Mono', monospace"
+          },
+          children: ["\u75C5\u623F\u8CBB\u4E0D\u8DB3\uFF0F\u65E5 ", fmt(calc.roomGap), "\u3000\u770B\u8B77\u4E0D\u8DB3\uFF0F\u65E5 ", fmt(calc.careGap)]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontFamily: "'Noto Serif TC', serif",
+            fontSize: 18,
+            margin: "0 0 12px"
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
+            size: 19
+          }), "\u5931\u80FD\u9577\u7167\u8207\u5BB6\u5EAD\u8CAC\u4EFB"]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: 12,
+            marginBottom: 16
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u6BCF\u6708\u7167\u9867\u9700\u6C42\uFF1F",
+            value: protection.longTermCareMonthly,
+            onChange: v => setProtection(p => ({
+              ...p,
+              longTermCareMonthly: v
+            })),
+            suffix: "\u5143\uFF0F\u6708"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u9810\u4F30\u7167\u9867\u671F\u9593\uFF1F",
+            value: protection.longTermCareYears,
+            onChange: v => setProtection(p => ({
+              ...p,
+              longTermCareYears: v
+            })),
+            suffix: "\u5E74"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5DF2\u6E96\u5099\u9577\u7167\u9810\u5099\u91D1\uFF1F",
+            value: protection.longTermPrepared,
+            onChange: v => setProtection(p => ({
+              ...p,
+              longTermPrepared: v
+            })),
+            suffix: "\u5143"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u5BB6\u5EAD\u8CAC\u4EFB\u7E3D\u984D\uFF1F",
+            value: protection.familyResponsibility,
+            onChange: v => setProtection(p => ({
+              ...p,
+              familyResponsibility: v
+            })),
+            suffix: "\u623F\u8CB8\u3001\u6276\u990A\u3001\u6559\u80B2\u7B49\u8CAC\u4EFB"
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+            label: "\u73FE\u6709\u58FD\u96AA\u4FDD\u969C\uFF1F",
+            value: protection.lifeCoverage,
+            onChange: v => setProtection(p => ({
+              ...p,
+              lifeCoverage: v
+            })),
+            suffix: "\u5143"
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            padding: 14,
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 10,
+            fontFamily: "'IBM Plex Mono', monospace"
+          },
+          children: ["\u9577\u7167\u9700\u6C42\u7E3D\u984D ", fmt(calc.longTermCareNeed), "\u3000\u9577\u7167\u4E0D\u8DB3\u984D ", /*#__PURE__*/(0, _jsxRuntime.jsx)("strong", {
+            children: fmt(calc.longTermCareGap)
+          }), "\u3000\u5BB6\u5EAD\u4FDD\u969C\u7F3A\u53E3 ", /*#__PURE__*/(0, _jsxRuntime.jsx)("strong", {
+            children: fmt(calc.familyCoverageGap)
+          })]
+        })]
+      }), tab === "retirement" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("p", {
+          style: {
+            fontSize: 13,
+            color: "#5A5443",
+            marginTop: -8,
+            marginBottom: 18
+          },
+          children: "\u55AE\u7D14\u4EE5\u500B\u4EBA\u9000\u4F11\u751F\u6D3B\u8CBB\u3001\u5E74\u9F61\u3001\u901A\u81A8\u8207\u9000\u4F11\u5F8C\u5831\u916C\u7387\u4F30\u7B97\u6240\u9700\u9000\u4F11\u91D1\uFF1B\u672C\u9801\u4E0D\u542B\u793E\u4FDD\u3001\u52DE\u4FDD\u3001\u52DE\u9000\u6E96\u5099\u3002"
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 12,
+            padding: 18,
+            marginBottom: 18
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "'Noto Serif TC', serif",
+              fontSize: 18,
+              margin: "0 0 14px"
+            },
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
+              size: 19
+            }), "\u9000\u4F11\u9700\u6C42\u5047\u8A2D"]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 12,
+              marginBottom: 16
+            },
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u76EE\u524D\u5E74\u9F61",
+              value: retirement.currentAge,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                currentAge: v
+              })),
+              suffix: "\u6B72"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u9810\u8A08\u9000\u4F11\u5E74\u9F61",
+              value: retirement.retireAge,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                retireAge: v
+              })),
+              suffix: "\u6B72"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u9810\u8A08\u5E73\u5747\u9918\u547D\uFF0F\u58FD\u547D",
+              value: retirement.lifeAge,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                lifeAge: v
+              })),
+              suffix: "\u6B72"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u76EE\u524D\u6BCF\u6708\u9000\u4F11\u751F\u6D3B\u8CBB",
+              value: retirement.monthlyExpense,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                monthlyExpense: v
+              })),
+              suffix: "\u4EE5\u73FE\u5728\u7269\u50F9\u4F30\u7B97"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u9577\u671F\u901A\u81A8\u7387",
+              value: retirement.inflationRate,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                inflationRate: v
+              })),
+              suffix: "%\uFF0F\u5E74"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u9000\u4F11\u5F8C\u5E74\u5831\u916C\u7387",
+              value: retirement.retireReturnRate,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                retireReturnRate: v
+              })),
+              suffix: "%\uFF0F\u5E74"
+            })]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+              gap: 10
+            },
+            children: [{
+              label: "距離退休",
+              value: fmt(calc.yearsToRetire) + " 年"
+            }, {
+              label: "退休生活",
+              value: fmt(calc.retireYears) + " 年"
+            }, {
+              label: "退休時月生活費",
+              value: fmt(calc.retireMonthlyExpense)
+            }, {
+              label: "所需退休金",
+              value: fmt(calc.retirementNeed)
+            }].map(it => /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+              style: {
+                background: PAPER,
+                border: `1px solid ${LINE}`,
+                borderRadius: 8,
+                padding: 10
+              },
+              children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontSize: 12,
+                  color: "#8E8574",
+                  marginBottom: 4
+                },
+                children: it.label
+              }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontWeight: 700
+                },
+                children: it.value
+              })]
+            }, it.label))
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 12,
+            padding: 18
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+            style: {
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontFamily: "'Noto Serif TC', serif",
+              fontSize: 18,
+              margin: "0 0 14px"
+            },
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(TrendingUp, {
+              size: 19
+            }), "\u76EE\u524D\u5DF2\u6E96\u5099"]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 12,
+              marginBottom: 16
+            },
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u55AE\u7B46\u4E00\uFF1A\u76EE\u524D\u91D1\u984D",
+              value: retirement.lump1,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                lump1: v
+              }))
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u55AE\u7B46\u4E00\uFF1A\u7D2F\u7A4D\u5E74\u6578",
+              value: retirement.lump1Years,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                lump1Years: v
+              }))
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u55AE\u7B46\u4E00\uFF1A\u5E74\u6536\u76CA\u7387",
+              value: retirement.lump1Return,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                lump1Return: v
+              })),
+              suffix: "%"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u5B9A\u671F\u5B9A\u984D\uFF1A\u6BCF\u6708\u6295\u5165",
+              value: retirement.monthly1,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                monthly1: v
+              }))
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u5B9A\u671F\u5B9A\u984D\uFF1A\u7D2F\u7A4D\u5E74\u6578",
+              value: retirement.monthly1Years,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                monthly1Years: v
+              }))
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u5B9A\u671F\u5B9A\u984D\uFF1A\u5E74\u6536\u76CA\u7387",
+              value: retirement.monthly1Return,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                monthly1Return: v
+              })),
+              suffix: "%"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(NumberField, {
+              label: "\u5176\u4ED6\u5DF2\u6E96\u5099\u9000\u4F11\u91D1",
+              value: retirement.otherPrepared,
+              onChange: v => setRetirement(p => ({
+                ...p,
+                otherPrepared: v
+              })),
+              suffix: "\u4E0D\u542B\u793E\u4FDD\u3001\u52DE\u4FDD\u3001\u52DE\u9000"
+            })]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+              gap: 10
+            },
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+              style: {
+                background: PAPER,
+                border: `1px solid ${LINE}`,
+                borderRadius: 8,
+                padding: 12
+              },
+              children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontSize: 12,
+                  color: "#8E8574",
+                  marginBottom: 4
+                },
+                children: "\u5DF2\u6E96\u5099\u9000\u4F11\u91D1"
+              }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 20,
+                  fontWeight: 700
+                },
+                children: fmt(calc.retirementPrepared)
+              })]
+            }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+              style: {
+                background: calc.retirementGap > 0 ? "#FFF0EE" : "#EEF7F0",
+                border: `1px solid ${calc.retirementGap > 0 ? "#E8B8B2" : "#BFD8C6"}`,
+                borderRadius: 8,
+                padding: 12
+              },
+              children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontSize: 12,
+                  color: "#8E8574",
+                  marginBottom: 4
+                },
+                children: "\u9000\u4F11\u7F3A\u53E3"
+              }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+                style: {
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: calc.retirementGap > 0 ? "#D91F11" : "#10843F"
+                },
+                children: fmt(calc.retirementGap)
+              })]
+            })]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            style: {
+              color: "#8E8574",
+              fontSize: 12,
+              marginTop: 10
+            },
+            children: "\u5099\u8A3B\uFF1A\u672C\u8A66\u7B97\u4E0D\u542B\u793E\u4FDD\u3001\u52DE\u4FDD\u3001\u52DE\u9000\u6E96\u5099\u3002"
+          })]
+        })]
       }), tab === "dashboard" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+          style: {
+            background: "#fff",
+            border: `1px solid ${LINE}`,
+            borderRadius: 16,
+            padding: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 22,
+            marginBottom: 20
+          },
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+            style: {
+              width: 78,
+              height: 78,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: `4px solid ${gradeColor}`,
+              fontFamily: "'Noto Serif TC', serif",
+              fontWeight: 900,
+              fontSize: 32,
+              color: gradeColor
+            },
+            children: calc.grade
+          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+              style: {
+                fontFamily: "'Noto Serif TC', serif",
+                fontWeight: 700,
+                fontSize: 18
+              },
+              children: "\u8CA1\u52D9\u5065\u8A3A\u6307\u6A19"
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+              style: {
+                fontSize: 13,
+                color: "#5A5443",
+                marginTop: 4
+              },
+              children: calc.redCount === 0 ? "目前沒有危險項目，建議持續追蹤各項比例。" : `目前有 ${calc.redCount} 項危險指標，建議優先處理下方標註的項目。`
+            })]
+          })]
+        }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          style: {
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 14
+          },
+          children: indicators.map((it, idx) => {
+            const icons = [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(TrendingUp, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Landmark, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(Gauge, {
+              size: 17
+            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(AlertTriangle, {
+              size: 17
+            })];
+            return /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
+              icon: icons[idx],
+              title: it.title,
+              value: it.value,
+              target: it.target,
+              level: it.level,
+              advice: it.advice
+            }, it.title);
+          })
+        })]
+      }), tab === "report" && /*#__PURE__*/(0, _jsxRuntime.jsxs)("section", {
         children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
           style: {
             display: "flex",
@@ -1377,114 +2166,86 @@ function FinancialHealthApp() {
           style: {
             background: "#fff",
             border: `1px solid ${LINE}`,
-            borderRadius: 16,
-            padding: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 22,
-            marginBottom: 20
+            borderRadius: 12,
+            padding: 18
           },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
+          children: [/*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
             style: {
-              width: 78,
-              height: 78,
-              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              border: `4px solid ${gradeColor}`,
+              gap: 8,
               fontFamily: "'Noto Serif TC', serif",
-              fontWeight: 900,
-              fontSize: 32,
-              color: gradeColor
+              fontSize: 18,
+              margin: "0 0 12px"
             },
-            children: calc.grade
-          }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
-            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-              style: {
-                fontFamily: "'Noto Serif TC', serif",
-                fontWeight: 700,
-                fontSize: 18
-              },
-              children: "\u6574\u9AD4\u8CA1\u52D9\u5065\u5EB7\u5EA6"
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-              style: {
-                fontSize: 13,
-                color: "#5A5443",
-                marginTop: 4
-              },
-              children: calc.redCount === 0 ? "各項指標表現穩健，持續維持現有節奏即可。" : `目前有 ${calc.redCount} 項指標亮紅燈，建議優先處理下方標註的項目。`
-            })]
+            children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(FileText, {
+              size: 19
+            }), "\u7E3D\u89BD\u5831\u544A"]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(GroupedReportTable, {
+            title: "\u8CA1\u52D9\u6458\u8981",
+            rows: [{
+              item: "總資產",
+              value: fmt(calc.totalAssets === 1 ? 0 : calc.totalAssets),
+              note: "已依外幣匯率換算為台幣"
+            }, {
+              item: "月收入",
+              value: fmt(calc.totalIncome),
+              note: "主動收入＋被動收入月均"
+            }, {
+              item: "月支出",
+              value: fmt(calc.totalExpense + calc.totalSaving + calc.totalRisk),
+              note: "消費、投資儲蓄與風險支出月均"
+            }, {
+              item: "淨現金流",
+              value: fmt(calc.totalIncome - calc.totalExpense - calc.totalSaving - calc.totalRisk),
+              note: "月收入扣除月支出"
+            }]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(GroupedReportTable, {
+            title: "\u4FDD\u969C\u9700\u6C42",
+            rows: [{
+              item: "重大疾病缺口",
+              value: fmt(calc.majorIllnessGap),
+              note: "替代收入＋醫療準備金扣除已準備"
+            }, {
+              item: "病房費不足／日",
+              value: fmt(calc.roomGap),
+              note: "需求扣除現有病房費賠付"
+            }, {
+              item: "看護不足／日",
+              value: fmt(calc.careGap),
+              note: "需求扣除現有看護保障"
+            }, {
+              item: "長照缺口",
+              value: fmt(calc.longTermCareGap),
+              note: "長照總需求扣除已準備"
+            }, {
+              item: "家庭保障缺口",
+              value: fmt(calc.familyCoverageGap),
+              note: "家庭責任總額扣除壽險保障"
+            }]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(GroupedReportTable, {
+            title: "\u9000\u4F11\u898F\u5283",
+            rows: [{
+              item: "所需退休金",
+              value: fmt(calc.retirementNeed),
+              note: "以退休生活費、通膨與退休後報酬率估算"
+            }, {
+              item: "已準備退休金",
+              value: fmt(calc.retirementPrepared),
+              note: "不含社保、勞保、勞退"
+            }, {
+              item: "退休缺口",
+              value: fmt(calc.retirementGap),
+              note: "所需退休金扣除已準備"
+            }]
+          }), /*#__PURE__*/(0, _jsxRuntime.jsx)(GroupedReportTable, {
+            title: "\u5065\u8A3A\u6307\u6A19",
+            rows: indicators.map(it => ({
+              item: it.title,
+              value: levelLabel[it.level],
+              note: it.advice
+            }))
           })]
-        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontFamily: "'Noto Serif TC', serif",
-            fontSize: 17,
-            margin: "4px 0 12px"
-          },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Gauge, {
-            size: 19
-          }), "\u4EBA\u751F\u9EC3\u91D1\u5206\u914D\u6BD4\u4F8B"]
-        }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          style: {
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 14,
-            marginBottom: 24
-          },
-          children: indicators.slice(0, 3).map((it, idx) => {
-            const icons = [/*#__PURE__*/(0, _jsxRuntime.jsx)(Wallet, {
-              size: 17
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(TrendingUp, {
-              size: 17
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
-              size: 17
-            })];
-            return /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-              icon: icons[idx],
-              title: it.title,
-              value: it.value,
-              target: it.target,
-              level: it.level,
-              advice: it.advice
-            }, it.title);
-          })
-        }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
-          style: {
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontFamily: "'Noto Serif TC', serif",
-            fontSize: 17,
-            margin: "4px 0 12px"
-          },
-          children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
-            size: 19
-          }), "\u9810\u5099\u91D1\u8207\u8CC7\u7522\u914D\u7F6E"]
-        }), /*#__PURE__*/(0, _jsxRuntime.jsx)("div", {
-          style: {
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 14
-          },
-          children: indicators.slice(3).map((it, idx) => {
-            const icons = [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
-              size: 17
-            }), /*#__PURE__*/(0, _jsxRuntime.jsx)(AlertTriangle, {
-              size: 17
-            })];
-            return /*#__PURE__*/(0, _jsxRuntime.jsx)(IndicatorCard, {
-              icon: icons[idx],
-              title: it.title,
-              value: it.value,
-              target: it.target,
-              level: it.level,
-              advice: it.advice
-            }, it.title);
-          })
         })]
       })]
     }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
@@ -1580,7 +2341,7 @@ function FinancialHealthApp() {
               style: {
                 padding: "6px 8px"
               },
-              children: "\u71C8\u865F"
+              children: "\u72C0\u614B"
             }), /*#__PURE__*/(0, _jsxRuntime.jsx)("th", {
               style: {
                 padding: "6px 8px"
@@ -1710,6 +2471,42 @@ function FinancialHealthApp() {
           fontSize: 15,
           margin: "18px 0 8px"
         },
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(ShieldCheck, {
+          size: 15
+        }), "\u4FDD\u969C\u9700\u6C42\u6458\u8981"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        style: {
+          fontSize: 13,
+          marginBottom: 18
+        },
+        children: ["\u91CD\u5927\u75BE\u75C5\u7F3A\u53E3 ", fmt(calc.majorIllnessGap), "\u3000\u75C5\u623F\u8CBB\u4E0D\u8DB3\uFF0F\u65E5 ", fmt(calc.roomGap), "\u3000\u770B\u8B77\u4E0D\u8DB3\uFF0F\u65E5 ", fmt(calc.careGap), "\u3000\u9577\u7167\u7F3A\u53E3 ", fmt(calc.longTermCareGap), "\u3000\u5BB6\u5EAD\u4FDD\u969C\u7F3A\u53E3 ", fmt(calc.familyCoverageGap)]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "'Noto Serif TC', serif",
+          fontSize: 15,
+          margin: "18px 0 8px"
+        },
+        children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(PiggyBank, {
+          size: 15
+        }), "\u9000\u4F11\u898F\u5283\u6458\u8981"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("div", {
+        style: {
+          fontSize: 13,
+          marginBottom: 18
+        },
+        children: ["\u8DDD\u96E2\u9000\u4F11 ", fmt(calc.yearsToRetire), " \u5E74\u3000\u9000\u4F11\u751F\u6D3B ", fmt(calc.retireYears), " \u5E74\u3000\u6240\u9700\u9000\u4F11\u91D1 ", fmt(calc.retirementNeed), "\u3000\u5DF2\u6E96\u5099 ", fmt(calc.retirementPrepared), "\u3000\u9000\u4F11\u7F3A\u53E3 ", fmt(calc.retirementGap), "\uFF08\u4E0D\u542B\u793E\u4FDD\u3001\u52DE\u4FDD\u3001\u52DE\u9000\uFF09"]
+      }), /*#__PURE__*/(0, _jsxRuntime.jsxs)("h2", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "'Noto Serif TC', serif",
+          fontSize: 15,
+          margin: "18px 0 8px"
+        },
         children: [/*#__PURE__*/(0, _jsxRuntime.jsx)(Banknote, {
           size: 15
         }), "\u6536\u5165\u660E\u7D30"]
@@ -1785,4 +2582,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(/*#__PURE__*/(0, _js
 </body>
 
 </html>
+
 
